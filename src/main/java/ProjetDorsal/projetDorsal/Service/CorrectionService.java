@@ -9,14 +9,12 @@ import ProjetDorsal.projetDorsal.Repository.UserRepository;
 import ProjetDorsal.projetDorsal.Utilitaire.CorrectionMappage;
 import ProjetDorsal.projetDorsal.Utilitaire.UserMappage;
 import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-import java.sql.Date;
-import java.time.Instant;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -32,13 +30,9 @@ public class CorrectionService {
     private UserRepository userRepository;
 
     public void saveCorrection(@NotNull String token, CorrectionDto correctionDto) {
+        Optional<UserEntity> userEntity = findUserFromToken(token);
         UserDto userDto = new UserDto();
 
-        if (token.startsWith("Bearer ")) {
-            token = token.substring(7);
-        }
-
-        Optional<UserEntity> userEntity = userRepository.findByUsername(jwtService.extractUsername(token));
         if (userEntity.isPresent()) {
             userDto = userMappage.entityToDto(userEntity.get());
             correctionDto.setUserDto(userDto);
@@ -46,14 +40,105 @@ public class CorrectionService {
             correctionDto.setSaisinext(LocalDate.now().plusDays(1));
 
 
-            Optional<CorrectionEntity> existingCorrection = correctionRepository.findByUserentity(userEntity.get());
-            if (existingCorrection.isPresent() && Objects.equals(existingCorrection.get().getSaisiday(), LocalDate.now())) {
-                throw new RuntimeException("Vous avez déjà saisi la correction pour aujourd'hui " +existingCorrection.get().getSaisiday()+ " Revenez demain " + existingCorrection.get().getSaisinext());
-            } else {
-                correctionRepository.save(correctionMappage.dtoToEntity(correctionDto));
+            List<CorrectionEntity> existingCorrections = correctionRepository.findByUserentity(userEntity.get());
+            for (CorrectionEntity existingCorrection : existingCorrections) {
+                if (Objects.equals(existingCorrection.getSaisiday(), LocalDate.now())) {
+                    throw new RuntimeException("Vous avez déjà saisi la correction pour aujourd'hui " + existingCorrection.getSaisiday() + ". Revenez demain " + existingCorrection.getSaisinext() + " .");
+                }
             }
+            correctionRepository.save(correctionMappage.dtoToEntity(correctionDto));
+
         } else {
             throw new RuntimeException("Utilisateur introuvable.");
+        }
+    }
+
+    public List<CorrectionDto> listeCorrectionPerUser(String token) {
+        Optional<UserEntity> userEntity = findUserFromToken(token);
+        if (userEntity.isPresent()) {
+            return correctionMappage.listeentityToDto(correctionRepository.findByUserentity(userEntity.get()));
+        } else {
+            throw new UsernameNotFoundException("Utilisateur non défini");
+        }
+    }
+
+
+    private Optional<UserEntity> findUserFromToken(String token) {
+        UserDto userDto = new UserDto();
+
+        if (token.startsWith("Bearer ")) {
+            token = token.substring(7);
+        }
+
+        Optional<UserEntity> userEntity = userRepository.findByUsername(jwtService.extractUsername(token));
+        return userEntity;
+    }
+
+    public List<CorrectionDto> listeCorrectionAll(String token) {
+
+        Optional<UserEntity> userEntity = findUserFromToken(token);
+        if (userEntity.isPresent()) {
+            return correctionMappage.listeentityToDto(correctionRepository.findAll());
+        } else {
+            throw new UsernameNotFoundException("Réservez à l'Admin");
+        }
+    }
+
+    public void modifierCorrection(Long idCorrection, CorrectionDto correctionDto, String token) {
+
+        Optional<CorrectionEntity> correctionEntity = correctionRepository.findById(idCorrection);
+
+        Optional<UserEntity> userEntity = findUserFromToken(token);
+
+        List<CorrectionEntity> correctionEntity2 = correctionRepository.findByUserentity(userEntity.get());
+        if (correctionEntity.isPresent()) {
+            boolean elementTrouve = false;
+
+            for (CorrectionEntity correction : correctionEntity2) {
+                if (correction.getUserentity() == correctionEntity.get().getUserentity()) {
+                    CorrectionEntity correctionEntity1 = correctionEntity.get();
+                    correctionEntity1.setCorrectionvalue(correctionDto.getCorrectionvalue());
+                    correctionEntity1.setSaisiday(LocalDate.now());
+                    correctionEntity1.setSaisinext(LocalDate.now().plusDays(1));
+                    correctionRepository.save(correctionEntity1);
+                    elementTrouve = true;
+                    break;
+                }
+            }
+
+            if (!elementTrouve) {
+                throw new RuntimeException("Vous ne devez pas modifier cet élément");
+            }
+        } else {
+            throw new RuntimeException("Correction Non disponible");
+        }
+
+
+
+    }
+
+    public void supprimerCorrection(Long idCorrection, String token) {
+        Optional<CorrectionEntity> correctionEntity = correctionRepository.findById(idCorrection);
+        Optional<UserEntity> userEntity = findUserFromToken(token);
+
+        List<CorrectionEntity> correctionEntity2 = correctionRepository.findByUserentity(userEntity.get());
+
+        if (correctionEntity.isPresent()) {
+            boolean elementTrouve = false;
+
+            for (CorrectionEntity correction : correctionEntity2) {
+                if (correction.getUserentity() == correctionEntity.get().getUserentity()) {
+                    correctionRepository.deleteById(idCorrection);
+                    elementTrouve = true;
+                    break;
+                }
+            }
+
+            if (!elementTrouve) {
+                throw new RuntimeException("Vous ne devez pas supprimer cet élément");
+            }
+        } else {
+            throw new RuntimeException("Correction Non disponible");
         }
     }
 }

@@ -16,8 +16,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-import static org.springframework.http.HttpMethod.GET;
-import static org.springframework.http.HttpMethod.POST;
+import static org.springframework.http.HttpMethod.*;
 
 @Configuration
 @AllArgsConstructor
@@ -41,6 +40,15 @@ private UserService userService;
                                         .requestMatchers(POST,"/inscription").permitAll()
                                         .requestMatchers(POST,"/connexion").permitAll()
                                         .requestMatchers(POST, "/correction").hasAnyRole("ADMIN", "USER")
+                                        .requestMatchers(GET, "/listeCorrection").hasAnyRole("ADMIN", "USER")
+                                        .requestMatchers(GET, "/listeAll").hasRole("ADMIN")
+                                        .requestMatchers(PUT, "/modifier/{idCorrection}").hasAnyRole("ADMIN", "USER")
+                                        .requestMatchers(DELETE, "supprimer/{idCorrection}").hasAnyRole("ADMIN", "USER")
+
+
+
+
+
                                         .anyRequest().authenticated()
 
                         ).sessionManagement(httpSecuritySessionManagementConfigurer ->
