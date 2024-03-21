@@ -8,10 +8,13 @@ import ProjetDorsal.projetDorsal.Service.CorrectionService;
 import lombok.AllArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.HttpClientErrorException;
 
+import java.nio.file.AccessDeniedException;
+import java.time.LocalDate;
 import java.util.List;
 
 import static org.springframework.util.MimeTypeUtils.APPLICATION_JSON_VALUE;
@@ -38,11 +41,20 @@ public class CorrectionController {
     }
 
 
+
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    @GetMapping("/periodique")
+    public List<CorrectionDto> periodicite(@RequestHeader("Authorization") String token, @RequestParam("periode") LocalDate localDate)
+    {
+        return this.correctionService.listeParPeriodicite(token, localDate);
+    }
+
+
     @ResponseStatus(HttpStatus.ACCEPTED)
     @GetMapping("/listeAll")
-    public List<CorrectionDto> listeAll(@RequestHeader("Authorization") String token)
-    {
-        return this.correctionService.listeCorrectionAll(token);
+    public ResponseEntity<List<CorrectionDto>> listeAll(@RequestHeader("Authorization") String token) {
+        List<CorrectionDto> correctionList = this.correctionService.listeCorrectionAll(token);
+        return ResponseEntity.accepted().body(correctionList);
     }
 
 
@@ -63,6 +75,12 @@ public class CorrectionController {
     }
 
 
+
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    @ExceptionHandler(AccessDeniedException.class)
+    public ErrorDto handleForbiddenException(AccessDeniedException exception) {
+        return new ErrorDto(null, "Access forbidden: " + exception.getMessage());
+    }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler({RuntimeException.class, UsernameNotFoundException.class})

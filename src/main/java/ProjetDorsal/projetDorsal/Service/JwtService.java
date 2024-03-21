@@ -12,6 +12,7 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
@@ -25,6 +26,8 @@ import java.util.function.Function;
 @AllArgsConstructor
 @Service
 public class JwtService {
+
+
     private UserService userService;
 
     public Map<String, String> generate(String username) {
@@ -76,7 +79,7 @@ public class JwtService {
                 .setClaims(claims)
                 .signWith(SignatureAlgorithm.HS256, getKey())
                 .compact();
-        return Map.of("bearer", bearer);
+        return Map.of("Jetons", bearer);
     }
 
     private @NotNull Key getKey() {

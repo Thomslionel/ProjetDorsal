@@ -5,6 +5,7 @@ import ProjetDorsal.projetDorsal.Entity.UserEntity;
 import ProjetDorsal.projetDorsal.Repository.UserRepository;
 import ProjetDorsal.projetDorsal.Utilitaire.TypeRole;
 import ProjetDorsal.projetDorsal.Utilitaire.UserMappage;
+import io.jsonwebtoken.Claims;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import org.jetbrains.annotations.NotNull;
@@ -23,15 +24,13 @@ import java.util.Optional;
 public class UserService  implements UserDetailsService {
 
     private final UserRepository userRepository;
-
     private final UserMappage userMappage ;
+
 
 
     public void inscription(@NotNull UserDto userDto)
     {
 
-        System.out.println(userDto.getPassword());
-        System.out.println(userDto.getUsername());
         if (!userDto.getUsername().contains("@") || !userDto.getUsername().contains("."))
         {
             throw new RuntimeException("Mail Invalide");
@@ -52,8 +51,8 @@ public class UserService  implements UserDetailsService {
 
     }
 
-    public List<UserDto> searchAll() {
-        return  this.userMappage.listeentityToDto(userRepository.findAll());
+    public List<UserDto> searchAll(String token) {
+                return this.userMappage.listeentityToDto(userRepository.findAll());
     }
 
     @Override
@@ -63,16 +62,4 @@ public class UserService  implements UserDetailsService {
                 .orElseThrow(() -> new  UsernameNotFoundException("Aucun utilisateur ne corespond à cet identifiant"));
     }
 
-
-//    public UserEntity rechercherByUsername(String username)
-//    {
-//        Optional<UserEntity> userEntity = userRepository.findByUserName(username);
-//        if (userEntity.isPresent())
-//        {
-//            return userEntity.get();
-//        }else
-//        {
-//            throw new EntityNotFoundException("L'utilisateur n'existe pas");
-//        }
-//    }
 }

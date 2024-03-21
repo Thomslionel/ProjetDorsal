@@ -25,10 +25,8 @@ public class ConfigurationSecurity {
 
 private UserService userService;
 
-    private final JwtFilter jwtFilter;
+private final JwtFilter jwtFilter;
 
-
-//    Classe que l'on peut instancier
 @Bean
     public SecurityFilterChain securityFilterChain(@NotNull HttpSecurity httpSecurity) throws Exception {
         return
@@ -44,9 +42,7 @@ private UserService userService;
                                         .requestMatchers(GET, "/listeAll").hasRole("ADMIN")
                                         .requestMatchers(PUT, "/modifier/{idCorrection}").hasAnyRole("ADMIN", "USER")
                                         .requestMatchers(DELETE, "supprimer/{idCorrection}").hasAnyRole("ADMIN", "USER")
-
-
-
+                                        .requestMatchers(DELETE, "/periodique").hasAnyRole("ADMIN", "USER")
 
 
                                         .anyRequest().authenticated()

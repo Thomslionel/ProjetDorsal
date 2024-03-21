@@ -22,12 +22,11 @@ import java.util.Optional;
 @AllArgsConstructor
 public class CorrectionService {
 
-    private JwtService jwtService;
-    private UserService userService;
     private UserMappage userMappage;
     private CorrectionMappage correctionMappage;
     private CorrectionRepository correctionRepository;
     private UserRepository userRepository;
+    private JwtService jwtService;
 
     public void saveCorrection(@NotNull String token, CorrectionDto correctionDto) {
         Optional<UserEntity> userEntity = findUserFromToken(token);
@@ -63,16 +62,6 @@ public class CorrectionService {
     }
 
 
-    private Optional<UserEntity> findUserFromToken(String token) {
-        UserDto userDto = new UserDto();
-
-        if (token.startsWith("Bearer ")) {
-            token = token.substring(7);
-        }
-
-        Optional<UserEntity> userEntity = userRepository.findByUsername(jwtService.extractUsername(token));
-        return userEntity;
-    }
 
     public List<CorrectionDto> listeCorrectionAll(String token) {
 
@@ -112,9 +101,6 @@ public class CorrectionService {
         } else {
             throw new RuntimeException("Correction Non disponible");
         }
-
-
-
     }
 
     public void supprimerCorrection(Long idCorrection, String token) {
@@ -141,5 +127,30 @@ public class CorrectionService {
             throw new RuntimeException("Correction Non disponible");
         }
     }
+
+    public List<CorrectionDto> listeParPeriodicite(String token, LocalDate localDate) {
+
+        Optional<UserEntity> userEntity = findUserFromToken(token);
+
+        if (userEntity.isPresent())
+        {
+              return this.correctionMappage.listeentityToDto(this.correctionRepository.findBySaisidayAfterAndUserentity(localDate, userEntity.get()));
+        }else
+            {
+                throw new RuntimeException("Utilisateur non présent");
+            }
+    }
+
+    public Optional<UserEntity> findUserFromToken(String token) {
+        UserDto userDto = new UserDto();
+
+        if (token.startsWith("Bearer ")) {
+            token = token.substring(7);
+        }
+        Optional<UserEntity> userEntity = userRepository.findByUsername(jwtService.extractUsername(token));
+        return userEntity;
+    }
 }
+
+
 

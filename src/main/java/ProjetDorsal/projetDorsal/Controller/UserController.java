@@ -66,8 +66,8 @@ public class UserController {
 
 
     @GetMapping("/findall")
-    public List<UserDto> listeUser() {
-        return this.userService.searchAll();
+    public List<UserDto> listeUser(@RequestHeader("Authorization") String token) {
+        return this.userService.searchAll(token);
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
@@ -77,10 +77,10 @@ public class UserController {
     }
 
 
-//    @ResponseStatus(HttpStatus.FORBIDDEN)
-//    @ExceptionHandler({HttpClientErrorException.Forbidden.class, ExceptionCustom.class})
-//    public ErrorDto gestiondinterdi(@NotNull Exception exception) {
-//        return new ErrorDto(null, exception.getMessage());
-//    }
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    @ExceptionHandler({HttpClientErrorException.Forbidden.class, ExceptionCustom.class})
+    public ErrorDto gestiondinterdi(@NotNull Exception exception) {
+        return new ErrorDto(null, exception.getMessage());
+    }
 
 }
