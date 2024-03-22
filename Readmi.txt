@@ -1,0 +1,8 @@
+Le présent fichier est un guide pour l'utilisation fluide de l'API.
+En effet, la solution ProjetDorsal fait une distinction entre Utilisateur et Administrateur.
+L'administrateur est créé avec un mail contenant la suite de caractère @thoms.com (voir la classe UserMappage) et l'utilisateur avec tout autre mail.
+
+L'utilisation du Jeton à la connexion du user ou admin permet d'authentifier l'utilisateur et de permettre une navigation fluide.
+
+Je vous souhaite alors une bonne expérience User tout au long de l'utilisation de mon API.
+
